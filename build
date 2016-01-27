@@ -1,0 +1,2 @@
+find edu -type f -iname '*.class' -exec rm -f \{\} \;
+javac edu/asu/sapa/Planner.java

@@ -1,0 +1,40 @@
+#!/bin/bash
+# planner <domain file> <problem file> <plan file>
+#   $0    $1      	$2       	$3     
+
+
+#java edu.asu.sapa.Planner $1 $2 > $3 
+
+
+
+cp $1 d.pddl
+cat d.pddl | sed -e 's/^; /;; /' > d_t.pddl
+mv d_t.pddl d.pddl
+
+cp $2 p.pddl
+cat p.pddl | sed -e 's/^; /;; /' > p_t.pddl
+mv p_t.pddl p.pddl
+
+grep -E ';; .*\(\s*:requirements' p.pddl
+if [ $? -ne 0 ]; then
+        cp p.pddl p_t.pddl
+        cat p_t.pddl | sed -e 's/(\s*:requirements/;; (:requirements/' > p.pddl
+        rm p_t.pddl
+fi
+
+grep -P '\([\s\n]*and' p.pddl
+if [ $? -ne 0 ] ; then
+        cat p.pddl | sed -e 's/(\s*:goal/(:goal (and/' > p.tt
+        mv p.tt p.pddl
+fi
+
+grep -E '\(\s*:metric' p.pddl
+if [ $? -eq 0 ] ; then
+        cat p.pddl | sed -e 's/(\s*:metric/)(:metric/' > p.tt
+        mv p.tt p.pddl
+else
+        echo ")" >> p.pddl
+fi
+
+java edu.asu.sapa.Planner d.pddl p.pddl > $3
+rm d.pddl p.pddl
